@@ -3,14 +3,21 @@ import type { Point } from "../types/point";
 const POINTS_KEY = 'sales_points';
 const ORIGINAL_POINTS_KEY = 'original_sale_points';
 
+interface RawPoint {
+  x: number;
+  y: number;
+  name: string;
+  [key: string]: unknown; 
+}
+
 export const loadPoints = (): Point[] => {
     const data = localStorage.getItem(POINTS_KEY);
     if (data) return JSON.parse(data);
 
-    fetch('/points.json')
+    fetch('/model.json')
         .then(r => r.json())
         .then(json => {
-            const points = json.map((p: any, i: number) => ({...p, id: String(i+1)}));
+            const points = json.map((p: RawPoint, i: number) => ({...p, id: String(i+1)}));
             localStorage.setItem(POINTS_KEY, JSON.stringify(points));
             localStorage.setItem(ORIGINAL_POINTS_KEY, JSON.stringify(points));
             return points

@@ -1,34 +1,34 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { loadPoints, savePoints, resetPoints, Point } from '../../lib/storage';
-
+import { loadPoints, savePoints, resetPoints } from '../../lib/storage';
+import type { Point } from '../../types/point';
+import PointMarker from './PointMarker';
+import Controls from './Controls';
 
 export default function MapPage() {
   const { logout } = useAuth();
-  const [points, setPoints] = useState<Point[]>([]);
+
+  const [points, setPoints] = useState<Point[]>(() => {
+    return loadPoints();
+  });
+
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  useEffect(() => {
-    setPoints(loadPoints());
-  }, []);
 
   useEffect(() => {
-    if (points.length > 0) savePoints(points);
+    savePoints(points);
   }, [points]);
 
-  const selectedPoint = points.find(p => p.id === selectedId);
+
+  const selectedPoint = useMemo(() => {
+    return points.find(p => p.id === selectedId) || null;
+  }, [points, selectedId]);
 
   const handleMapClick = (e: React.MouseEvent<SVGSVGElement>) => {
-    if (!e.target) return;
     const svg = e.currentTarget;
-    const point = svg.createSVGPoint();
-    point.x = e.clientX;
-    point.y = e.clientY;
-    const cursor = point.matrixTransform(svg.getScreenCTM()!.inverse());
-
     const rect = svg.getBoundingClientRect();
-    const x = ((cursor.x - rect.left) / rect.width) * 100;
-    const y = ((cursor.y - rect.top) / rect.height) * 100;
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
 
     if (x < 0 || x > 100 || y < 0 || y > 100) return;
 
@@ -39,6 +39,7 @@ export default function MapPage() {
       name: 'Новая точка',
       amount: 0,
     };
+
     setPoints(prev => [...prev, newPoint]);
     setSelectedId(newPoint.id);
   };
@@ -49,26 +50,27 @@ export default function MapPage() {
 
   const deletePoint = (id: string) => {
     setPoints(prev => prev.filter(p => p.id !== id));
-    setSelectedId(null);
+    setSelectedId(prev => prev === id ? null : prev);
   };
 
   const handleReset = () => {
-    if (confirm('Сбросить все изменения?')) {
+    if (confirm('Сбросить все изменения и вернуть исходные точки?')) {
       resetPoints();
-      setPoints(loadPoints());
+      setPoints(loadPoints()); 
     }
   };
 
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
-      <Controls onLogout={() => { logout(); }} onReset={handleReset} />
+      <Controls onLogout={logout} onReset={handleReset} />
       
       <svg
-        viewBox="0 0 1000  800"
+        viewBox="0 0 1000 800"
+        preserveAspectRatio="xMidYMid meet"
         style={{ width: '100%', height: '100%', background: '#f5f5f5' }}
         onClick={handleMapClick}
       >
-        <image href="/map.svg" width="1000" height="800" />
+        <image href="/tutzing.svg" width="1000" height="800" preserveAspectRatio="xMidYMid meet" />
         
         {points.map(point => (
           <PointMarker
@@ -83,30 +85,47 @@ export default function MapPage() {
 
       {selectedPoint && (
         <div style={{
-          position: 'absolute', top: 70, right: 20, background: 'white',
-          padding: 15, border: '1px solid #ccc', borderRadius: 8, width: 300
+          position: 'absolute',
+          top: 70,
+          right: 20,
+          background: 'white',
+          padding: 20,
+          border: '1px solid #ccc',
+          borderRadius: 12,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+          width: 320,
+          zIndex: 100
         }}>
-          <h3>Редактирование точки</h3>
+          <h3 style={{ margin: '0 0 16px' }}>Редактирование точки</h3>
+          
+          <label style={{ display: 'block', marginBottom: 8 }}>Название</label>
           <input
             value={selectedPoint.name}
             onChange={e => updatePoint(selectedPoint.id, { name: e.target.value })}
-            style={{ width: '100%', marginBottom: 10, padding: 8 }}
+            style={{ width: '100%', padding: 10, marginBottom: 12, borderRadius: 6, border: '1px solid #ddd' }}
+            autoFocus
           />
+          
+          <label style={{ display: 'block', marginBottom: 8 }}>Количество товара (шт.)</label>
           <input
             type="number"
             value={selectedPoint.amount}
-            onChange={e => updatePoint(selectedPoint.id, { amount: +e.target.value })}
-            style={{ width: '100%', marginBottom: 10, padding: 8 }}
+            onChange={e => updatePoint(selectedPoint.id, { amount: Number(e.target.value) || 0 })}
+            style={{ width: '100%', padding: 10, marginBottom: 16, borderRadius: 6, border: '1px solid #ddd' }}
           />
-          <div style={{ marginBottom: 10 }}>
-            X: {selectedPoint.x}% | Y: {selectedPoint.y}%
+          
+          <div style={{ marginBottom: 16, color: '#666', fontSize: '14px' }}>
+            Координаты: X: {selectedPoint.x}% | Y: {selectedPoint.y}%
           </div>
-          <button onClick={() => deletePoint(selectedPoint.id)} style={{ color: 'red' }}>
-            Удалить точку
-          </button>
-          <button onClick={() => setSelectedId(null)} style={{ float: 'right' }}>
-            Закрыть
-          </button>
+          
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={() => deletePoint(selectedPoint.id)} style={{ flex: 1, padding: 10, background: '#ff4444', color: 'white', border: 'none', borderRadius: 6 }}>
+              Удалить
+            </button>
+            <button onClick={() => setSelectedId(null)} style={{ flex: 1, padding: 10, background: '#666', color: 'white', border: 'none', borderRadius: 6 }}>
+              Закрыть
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -1,16 +1,26 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import LoginPage from "../components/Auth/LoginPage";
-import { useAuth } from "../hooks/useAuth";
-
-const ProtectedRoute = ({ children}: { children: JSX.Element}) => {
-    const { isAutthenticated } = useAuth();
-    return isAutthenticated ? children : <Navigate to="/login"/>
-};
+import MapPage from "../components/Map/MapPage";
+import ProtectedRoute from "./ProtectedRoute";
+import { Navigate } from "react-router-dom";
 
 const router = createBrowserRouter([
-    {path: "/login", element: <LoginPage/>},
-    {path: "/map", element: <ProtectedRoute><MapPage/></ProtectedRoute>},
-    {path: "*", element: <Navigate to="/map"/>},
-]):
+  {
+    path: "/login",
+    element: <LoginPage />,
+  },
+  {
+    path: "/map",
+    element: (
+      <ProtectedRoute>
+        <MapPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "*",
+    element: <Navigate to="/map" replace />,
+  },
+]);
 
-export default router
+export default router;

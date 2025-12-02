@@ -3,15 +3,15 @@ import { useAuth } from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
-    const [login, setLogin] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [login: aurhLogin] = useAuth();
+    const [login, setLogin] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const { login: authLogin } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (aurhLogin(login, password)) {
+        if (authLogin (login, password)) {
             navigate('/map');
         } else {
             setError('Неверный логин или пароль');

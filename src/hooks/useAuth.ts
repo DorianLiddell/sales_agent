@@ -11,7 +11,7 @@ export const useAuth = create<AuthState>((set) => ({
 
   login: (login: string, password: string) => {
     if (login === 'test' && password === 'test') {
-      localStorage.setItem('auth_token', 'valid-token-123');
+      localStorage.setItem('auth_token', 'valid-token');
       set({ isAuthenticated: true });
       return true;
     }

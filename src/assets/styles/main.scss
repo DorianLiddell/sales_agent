@@ -1,0 +1,12 @@
+@import './_variables';
+@import './reset';
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #f5f5f5;
+}
+
+#root, html, body {
+  height: 100%;
+}

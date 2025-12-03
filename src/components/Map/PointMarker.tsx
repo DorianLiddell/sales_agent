@@ -1,55 +1,65 @@
-import type { Point } from "../../types/point";
+import type { Point } from '../../types/point';
+import '../../assets/styles/components/Map/_PointMarker.scss';
 
 interface Props {
-    point: Point;
-    isSelected: boolean;
-    onSelect: () => void;
-    onUpdate: (updates: Partial<Point>) => void;
+  point: Point;
+  isSelected: boolean;
+  onSelect: () => void;
+  onUpdate: (updates: Partial<Point>) => void;
 }
 
-export default function PointMarker ({point, isSelected, onSelect, onUpdate}: Props) {
-    const handleDrag = (e: React.MouseEvent<SVGCircleElement>) => {
-        e.stopPropagation();
-        const svg = e.currentTarget.ownerSVGElement!;
-        const move = (moveEvent: MouseEvent) => {
-            const rect = svg.getBoundingClientRect();
-            const x = ((moveEvent.clientX - rect.left) / rect.width) * 100;
-            const y = ((moveEvent.clientY - rect.top) / rect.height) * 100;
-            onUpdate({ x: Number(x.toFixed(2)), y: Number(y.toFixed(2))});
-        };
+export default function PointMarker({ point, isSelected, onSelect, onUpdate }: Props) {
+  const handleDragStart = (e: React.MouseEvent<SVGCircleElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
 
-        const up = () => {
-            document.removeEventListener('mousemove', move);
-            document.removeEventListener('mouseup', up);
-        };
+    const svg = e.currentTarget.ownerSVGElement!;
+    const point = svg.createSVGPoint();
 
-        document.addEventListener('mousemove', move);
-        document.addEventListener('mouseup', up);
+    const move = (moveEvent: MouseEvent) => {
+      point.x = moveEvent.clientX;
+      point.y = moveEvent.clientY;
+      const cursor = point.matrixTransform(svg.getScreenCTM()!.inverse());
+
+      const x = Number(((cursor.x / 1000) * 100).toFixed(2));
+      const y = Number(((cursor.y / 800) * 100).toFixed(2));
+
+      if (x >= 0 && x <= 100 && y >= 0 && y <= 100) {
+        onUpdate({ x, y });
+      }
     };
 
-    return (
-    <g>
+    const up = () => {
+      document.removeEventListener('mousemove', move);
+      document.removeEventListener('mouseup', up);
+    };
+
+    document.addEventListener('mousemove', move);
+    document.addEventListener('mouseup', up);
+  };
+
+  const handleClick = (e: React.MouseEvent<SVGCircleElement>) => {
+    e.stopPropagation();
+    onSelect();
+  };
+
+  return (
+    <g className="point-marker">
       <circle
-        cx={point.x + '%'}
-        cy={point.y + '%'}
-        r="12"
-        fill={isSelected ? '#ff0000' : '#0066ff'}
-        stroke="#fff"
-        strokeWidth="3"
-        style={{ cursor: 'move' }}
-        onClick={(e) => { e.stopPropagation(); onSelect(); }}
-        onMouseDown={handleDrag}
+        cx={`${point.x}%`}
+        cy={`${point.y}%`}
+        r={isSelected ? 15 : 11}
+        className={`point-marker__circle ${isSelected ? 'point-marker__circle--selected' : ''}`}
+        onMouseDown={handleDragStart}
+        onClick={handleClick}
       />
       <text
-        x={point.x + '%'}
-        y={point.y + '%'}
-        dy="-15"
-        textAnchor="middle"
-        fontSize="14"
-        fill="#333"
-        pointerEvents="none"
+        x={`${point.x}%`}
+        y={`${point.y}%`}
+        dy="-18"
+        className="point-marker__label"
       >
-        {point.name} ({point.amount})
+        {point.name} {point.amount > 0 && `(${point.amount})`}
       </text>
     </g>
   );

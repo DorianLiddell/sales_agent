@@ -1,0 +1,25 @@
+@import '../../_variables'; 
+
+.point-marker {
+  cursor: move;
+  transition: all 0.2s ease;
+
+  &__circle {
+    stroke: white;
+    stroke-width: 3;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+
+    &--selected {
+      r: 14;
+      filter: drop-shadow(0 0 10px rgba(255,0,0,0.6));
+    }
+  }
+
+  &__label {
+    font-size: 13px;
+    font-weight: 600;
+    text-anchor: middle;
+    pointer-events: none;
+    fill: $gray-900;
+  }
+}

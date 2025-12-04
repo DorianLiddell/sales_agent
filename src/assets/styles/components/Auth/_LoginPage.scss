@@ -1,8 +1,8 @@
-@import '../../variables';
+@use '../../variables' as *;
 
 .login-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f5f5f5;;
   display: grid;
   place-items: center;
   padding: 20px;
@@ -25,7 +25,7 @@
   }
 
   &__input {
-    width: 100%;
+    width: 90%;
     padding: 14px 16px;
     margin-bottom: 16px;
     font-size: 16px;
@@ -43,8 +43,8 @@
   &__button {
     width: 100%;
     padding: 14px;
-    background: $primary;
-    color: white;
+    background: $danger;
+    color: $white;
     font-size: 16px;
     font-weight: 500;
     border-radius: $border-radius-sm;
@@ -52,20 +52,18 @@
     transition: $transition;
     cursor: pointer;
 
-    &:hover {
-      background: $primary-dark;
-    }
   }
 
   &__error {
     color: $danger;
     margin: 12px 0;
-    font-size: 14px;
+    font-size: 18px;
+    font-weight: 500;
   }
 
   &__hint {
     margin-top: 24px;
-    color: rgba(255,255,255,0.9);
+    color: $white;
     font-size: 14px;
   }
 }

@@ -1,4 +1,4 @@
-@import '../../_variables'; 
+@use '../../variables' as *;
 
 .controls {
   position: absolute;
@@ -21,6 +21,7 @@
     font-weight: 500;
     font-size: 14px;
     transition: $transition;
+    cursor: pointer;
 
     &--logout {
       background: $gray-800;

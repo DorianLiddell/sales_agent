@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import type { Point } from '../../types/point';
 import '../../assets/styles/components/Map/_PointMarker.scss';
 
@@ -6,41 +7,53 @@ interface Props {
   isSelected: boolean;
   onSelect: () => void;
   onUpdate: (updates: Partial<Point>) => void;
+  clientToPercent: (clientX: number, clientY: number) => { x: number; y: number };
 }
 
-export default function PointMarker({ point, isSelected, onSelect, onUpdate }: Props) {
-  const handleDragStart = (e: React.MouseEvent<SVGCircleElement>) => {
+export default function PointMarker({
+  point,
+  isSelected,
+  onSelect,
+  onUpdate,
+  clientToPercent,
+}: Props) {
+  const isDraggingRef = useRef(false);
+  const startPosRef = useRef({ x: 0, y: 0 });
+
+  const handleMouseDown = (e: React.MouseEvent<SVGCircleElement>) => {
     e.stopPropagation();
-    e.preventDefault();
+    e.preventDefault(); 
 
-    const svg = e.currentTarget.ownerSVGElement!;
-    const point = svg.createSVGPoint();
+    isDraggingRef.current = false;
+    startPosRef.current = { x: e.clientX, y: e.clientY };
 
-    const move = (moveEvent: MouseEvent) => {
-      point.x = moveEvent.clientX;
-      point.y = moveEvent.clientY;
-      const cursor = point.matrixTransform(svg.getScreenCTM()!.inverse());
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const dx = Math.abs(moveEvent.clientX - startPosRef.current.x);
+      const dy = Math.abs(moveEvent.clientY - startPosRef.current.y);
 
-      const x = Number(((cursor.x / 1000) * 100).toFixed(2));
-      const y = Number(((cursor.y / 800) * 100).toFixed(2));
+      if (dx > 3 || dy > 3) {
+        isDraggingRef.current = true;
+      }
 
-      if (x >= 0 && x <= 100 && y >= 0 && y <= 100) {
-        onUpdate({ x, y });
+      if (isDraggingRef.current) {
+        const { x, y } = clientToPercent(moveEvent.clientX, moveEvent.clientY);
+        if (x >= 0 && x <= 100 && y >= 0 && y <= 100) {
+          onUpdate({ x, y });
+        }
       }
     };
 
-    const up = () => {
-      document.removeEventListener('mousemove', move);
-      document.removeEventListener('mouseup', up);
+    const handleMouseUp = () => {
+      if (!isDraggingRef.current) {
+        onSelect();
+      }
+
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
     };
 
-    document.addEventListener('mousemove', move);
-    document.addEventListener('mouseup', up);
-  };
-
-  const handleClick = (e: React.MouseEvent<SVGCircleElement>) => {
-    e.stopPropagation();
-    onSelect();
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
   return (
@@ -48,18 +61,22 @@ export default function PointMarker({ point, isSelected, onSelect, onUpdate }: P
       <circle
         cx={`${point.x}%`}
         cy={`${point.y}%`}
-        r={isSelected ? 15 : 11}
+        r={isSelected ? 16 : 12}
         className={`point-marker__circle ${isSelected ? 'point-marker__circle--selected' : ''}`}
-        onMouseDown={handleDragStart}
-        onClick={handleClick}
+        onMouseDown={handleMouseDown}
+        style={{ cursor: 'move' }}
       />
+
       <text
         x={`${point.x}%`}
         y={`${point.y}%`}
-        dy="-18"
+        dy="-20"
+        textAnchor="middle"
         className="point-marker__label"
+        pointerEvents="none"
       >
-        {point.name} {point.amount > 0 && `(${point.amount})`}
+        {point.name}
+        {point.amount > 0 && ` (${point.amount})`}
       </text>
     </g>
   );

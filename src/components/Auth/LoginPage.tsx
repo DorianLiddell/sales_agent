@@ -26,7 +26,7 @@ export default function LoginPage() {
   return (
     <div className="login-page">
       <div className="login-page__card">
-        <h2 className="login-page__title">Вход для агента</h2>
+        <h2 className="login-page__title">Вход</h2>
 
         <form onSubmit={handleSubmit} className="login-page__form">
           <input

@@ -1,11 +1,11 @@
-@import '../../_variables'; 
+@use '../../variables' as *;
 
 .point-marker {
   cursor: move;
   transition: all 0.2s ease;
 
   &__circle {
-    stroke: white;
+    stroke: $white;
     stroke-width: 3;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 
